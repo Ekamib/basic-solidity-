@@ -1,0 +1,54 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract VotacionSimple {
+    address public organizador;
+    string public propuesta;
+    uint public votosAFavor;
+    uint public votosEnContra;
+    bool public votacionAbierta;
+
+    constructor(string memory _propuestaInicial) {
+        organizador = msg.sender;
+        propuesta = _propuestaInicial;
+        votacionAbierta = true;
+        votosAFavor = 0;
+        votosEnContra = 0;
+    }
+
+    modifier soloOrganizador() {
+        require(msg.sender == organizador, "No eres el organizador");
+        _;
+    }
+
+    modifier votacionActiva() {
+        require(votacionAbierta, "La votacion esta cerrada");
+        _;
+    }
+
+    function votarAFavor() public payable votacionActiva {
+        require(msg.value >= 0.01 ether, "Se requiere 0.01 ETH para votar");
+        votosAFavor += 1;
+    }
+
+    function votarEnContra() public payable votacionActiva {
+        require(msg.value >= 0.01 ether, "Se requiere 0.01 ETH para votar");
+        votosEnContra += 1;
+    }
+
+    function cambiarPropuesta(string memory _nuevaPropuesta) public soloOrganizador {
+        propuesta = _nuevaPropuesta;
+    }
+
+    function cerrarVotacion() public soloOrganizador {
+        votacionAbierta = false;
+    }
+
+    function obtenerResultados() public view returns (uint, uint) {
+        return (votosAFavor, votosEnContra);
+    }
+
+    function obtenerBalance() public view returns (uint) {
+        return address(this).balance;
+    }
+}
